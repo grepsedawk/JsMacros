@@ -46,9 +46,7 @@ dependencies {
     include "org.javassist:javassist:3.28.0-GA"
     include "org.jooq:joor:0.9.14"
 
-    modImplementation "com.terraformersmc:modmenu:${project.modmenu_version}"
-    //for modmenu
-    modImplementation fabricApi.module("fabric-screen-api-v1",  project.fapi_version)
+    modImplementation "io.github.prospector:modmenu:${rootProject.modmenu_version}"
 
     for (sourceSet in project(":common").sourceSets) {
         if (sourceSet == project(":common").sourceSets.test) continue

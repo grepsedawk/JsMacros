@@ -6,6 +6,7 @@ import net.minecraft.client.gui.screen.SaveLevelScreen;
 import net.minecraft.client.gui.screen.TitleScreen;
 import net.minecraft.client.network.ServerInfo;
 import net.minecraft.network.ServerAddress;
+import net.minecraft.network.ServerAddress;
 import net.minecraft.text.TranslatableText;
 import net.minecraft.util.registry.Registry;
 import net.minecraft.world.level.storage.LevelStorage;
@@ -36,6 +37,7 @@ import java.io.IOException;
 import java.net.UnknownHostException;
 import java.util.Collections;
 import java.util.List;
+import java.util.Optional;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.Semaphore;
 import java.util.stream.Collectors;
@@ -164,9 +166,8 @@ public class FClient extends PerExecLibrary {
      */
     public void loadWorld(String folderName) throws LevelStorageException {
 
-        LevelStorage levelstoragesource = mc.getLevelStorage();
-        List<LevelSummary> levels = levelstoragesource.getLevelList();
-        if (levels.stream().noneMatch(e -> e.getName().equals(folderName))) throw new RuntimeException("Level Not Found!");
+        Optional<LevelSummary> o = mc.getLevelStorage().getLevelList().stream().filter(e -> e.getName().equals(folderName)).findFirst();
+        if (!o.isPresent()) throw new RuntimeException("Level Not Found!");
 
         mc.execute(() -> {
             boolean bl = mc.isInSingleplayer();
@@ -176,8 +177,8 @@ public class FClient extends PerExecLibrary {
             } else {
                 mc.disconnect();
             }
-            mc.method_29970(new SaveLevelScreen(new TranslatableText("selectWorld.data_read")));
-            mc.startIntegratedServer(folderName);
+            mc.openScreen(new SaveLevelScreen(new TranslatableText("selectWorld.data_read")));
+            mc.startIntegratedServer(o.get().getName(), o.get().getDisplayName(), null);
         });
     }
     
@@ -328,9 +329,7 @@ public class FClient extends PerExecLibrary {
         if (Core.getInstance().profile.checkJoinedThreadStack()) {
             throw new IllegalThreadStateException("pinging from main thread is not supported!");
         }
-        Semaphore semaphore = new Semaphore(0);
-        TickBasedEvents.serverListPinger.add(info, semaphore::release);
-        semaphore.acquire();
+        TickBasedEvents.serverListPinger.add(info);
         return new ServerInfoHelper(info);
     }
 
@@ -345,7 +344,8 @@ public class FClient extends PerExecLibrary {
         CompletableFuture.runAsync(() -> {
             ServerInfo info = new ServerInfo("", ip, false);
             try {
-                TickBasedEvents.serverListPinger.add(info, () -> callback.accept(new ServerInfoHelper(info), null));
+                TickBasedEvents.serverListPinger.add(info);
+                callback.accept(new ServerInfoHelper(info));
             } catch (IOException e) {
                 callback.accept(null , e);
             }

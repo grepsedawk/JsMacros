@@ -1,6 +1,9 @@
 package xyz.wagyourtail.jsmacros.client.api.helpers;
 
 import net.minecraft.client.MinecraftClient;
+import net.minecraft.client.options.CloudRenderMode;
+import net.minecraft.client.options.GameOptions;
+import net.minecraft.client.resource.ClientResourcePackProfile;
 import net.minecraft.client.option.*;
 import net.minecraft.client.render.entity.PlayerModelPart;
 import net.minecraft.client.resource.language.LanguageDefinition;
@@ -148,7 +151,8 @@ public class OptionsHelper extends BaseHelper<GameOptions> {
     public OptionsHelper setEnabledResourcePacks(String[] enabled) {
         Collection<String> en = Arrays.stream(enabled).distinct().collect(Collectors.toList());
         List<String> currentRP = ImmutableList.copyOf(base.resourcePacks);
-        rpm.setEnabledProfiles(en);
+        Collection<ClientResourcePackProfile> prof = en.stream().map(e -> rpm.getProfile(e)).filter(Objects::nonNull).collect(Collectors.toList());
+        rpm.setEnabledProfiles(prof);
         base.resourcePacks.clear();
         base.incompatibleResourcePacks.clear();
         for (ResourcePackProfile p : rpm.getEnabledProfiles()) {

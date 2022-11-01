@@ -40,7 +40,7 @@ public class MixinHandledScreen<T extends ScreenHandler> extends Screen implemen
     protected int y;
 
     @Override
-    public Slot jsmacros_getSlotUnder(double x, double y) {
+    public Slot jsmacros_getSlotUnder(int x, int y) {
         return getSlotAt(x, y);
     }
 
